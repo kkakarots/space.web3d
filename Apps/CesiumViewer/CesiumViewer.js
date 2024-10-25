@@ -240,6 +240,97 @@ async function main() {
   }
 
   loadingIndicator.style.display = "none";
+
+  /**
+   * 卫星Demo
+   *
+   */
+  const coordinates = [
+    { time: "2023-01-01T00:00:00Z", longitude: 30, latitude: 10, height: 1000 },
+    { time: "2023-01-01T01:00:00Z", longitude: 31, latitude: 11, height: 1000 },
+    { time: "2023-01-01T02:00:00Z", longitude: 32, latitude: 10, height: 1000 },
+    { time: "2023-01-01T03:00:00Z", longitude: 33, latitude: 11, height: 1000 },
+  ];
+
+  // 创建 CZML 数据
+  const czmlData = [
+    {
+      id: "document",
+      name: "Satellite Track",
+      version: "1.0",
+    },
+    {
+      id: "satellite",
+      name: "My Satellite",
+      position: {
+        interpolationAlgorithm: "LAGRANGE",
+        interpolationDegree: 5,
+        referenceFrame: "INERTIAL",
+        epoch: coordinates[0].time, // 起始时间
+        cartesian: [],
+      },
+      availability: `${coordinates[0].time}/${coordinates[coordinates.length - 1].time}`, // 时间范围
+      billboard: {
+        eyeOffset: {
+          cartesian: [0, 0, 0],
+        },
+        horizontalOrigin: "CENTER",
+        image:
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADJSURBVDhPnZHRDcMgEEMZjVEYpaNklIzSEfLfD4qNnXAJSFWfhO7w2Zc0Tf9QG2rXrEzSUeZLOGm47WoH95x3Hl3jEgilvDgsOQUTqsNl68ezEwn1vae6lceSEEYvvWNT/Rxc4CXQNGadho1NXoJ+9iaqc2xi2xbt23PJCDIB6TQjOC6Bho/sDy3fBQT8PrVhibU7yBFcEPaRxOoeTwbwByCOYf9VGp1BYI1BA+EeHhmfzKbBoJEQwn1yzUZtyspIQUha85MpkNIXB7GizqDEECsAAAAASUVORK5CYII=",
+        pixelOffset: {
+          cartesian2: [0, 0],
+        },
+        scale: 1.5,
+        show: true,
+        verticalOrigin: "CENTER",
+      },
+      path: {
+        material: {
+          polylineOutline: {
+            color: {
+              rgba: [255, 0, 0, 255],
+            },
+            width: 2,
+          },
+        },
+        width: 5,
+        show: true,
+      },
+    },
+  ];
+
+  // 转换经纬度为笛卡尔坐标，并添加时间
+  coordinates.forEach((coord, index) => {
+    const position = Cartesian3.fromDegrees(
+      coord.longitude,
+      coord.latitude,
+      coord.height,
+    );
+
+    // 计算时间（以秒为单位）
+    const timeInSeconds = index * 3600; // 每小时一个点，0, 3600, 7200, 10800
+
+    // 按正确的顺序添加时间和坐标
+    czmlData[1].position.cartesian.push(
+      timeInSeconds,
+      position.x,
+      position.y,
+      position.z,
+    );
+  });
+
+  // 输出 CZML 数据
+  console.log("CAML:", JSON.stringify(czmlData, null, 2));
+
+  // 将 CZML 数据加载到 Cesium 中
+  const czmlDataSource = new CzmlDataSource();
+  czmlDataSource.load(czmlData);
+  viewer.dataSources.add(czmlDataSource);
+
+  /**
+   * 卫星Demo
+   *
+   */
 }
 
 main();
