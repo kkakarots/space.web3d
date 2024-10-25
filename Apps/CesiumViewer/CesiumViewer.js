@@ -11,6 +11,7 @@ import {
   objectToQuery,
   queryToObject,
   CzmlDataSource,
+  JulianDate,
   GeoJsonDataSource,
   ImageryLayer,
   KmlDataSource,
@@ -298,7 +299,7 @@ async function main() {
       },
     },
   ];
-
+  const epoch = JulianDate.fromIso8601(coordinates[0].time); // 计算 epoch
   // 转换经纬度为笛卡尔坐标，并添加时间
   coordinates.forEach((coord, index) => {
     const position = Cartesian3.fromDegrees(
@@ -307,8 +308,13 @@ async function main() {
       coord.height,
     );
 
+    // const timeInSeconds = index * 3600; // 每小时一个点，0, 3600, 7200, 10800
+
     // 计算时间（以秒为单位）
-    const timeInSeconds = index * 3600; // 每小时一个点，0, 3600, 7200, 10800
+    const time = JulianDate.fromIso8601(coord.time);
+
+    // 计算自 epoch 以来的秒数
+    const timeInSeconds = JulianDate.secondsDifference(time, epoch);
 
     // 按正确的顺序添加时间和坐标
     czmlData[1].position.cartesian.push(
